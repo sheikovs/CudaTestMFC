@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{5b6146a2-f08e-40d8-b897-3c6c5c338aea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CUDA">
+      <UniqueIdentifier>{228442aa-c171-4f91-ae1b-b8dca389881e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Test">
+      <UniqueIdentifier>{05abdff3-3685-47f4-936f-b5779f17dda2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CUDA\NvRtc">
+      <UniqueIdentifier>{03b7dde5-dcb2-40c3-b483-fc0dd4ea75d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UIs">
+      <UniqueIdentifier>{2df33ed3-c2f5-49d6-9583-269996f53d89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Parser">
+      <UniqueIdentifier>{66934ec1-d87d-40c3-a63a-f281f84fdf1f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CudaTestMFC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonDefs.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="TLLException.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CudaHelpers.h">
+      <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="Gpu.h">
+      <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="MemHelper.cuh">
+      <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="NvRtcHelpers.h">
+      <Filter>CUDA\NvRtc</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests.h">
+      <Filter>Test</Filter>
+    </ClInclude>
+    <ClInclude Include="ITest.h">
+      <Filter>Test</Filter>
+    </ClInclude>
+    <ClInclude Include="CTestDialog.h">
+      <Filter>UIs</Filter>
+    </ClInclude>
+    <ClInclude Include="MainDlg.h">
+      <Filter>UIs</Filter>
+    </ClInclude>
+    <ClInclude Include="CFuncTestDlg.h">
+      <Filter>UIs</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser.h">
+      <Filter>Parser</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="TLLException.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Gpu.cpp">
+      <Filter>CUDA</Filter>
+    </ClCompile>
+    <ClCompile Include="SaxpyRun.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="NvRtcHelpers.cpp">
+      <Filter>CUDA\NvRtc</Filter>
+    </ClCompile>
+    <ClCompile Include="CudaTestMFC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainDlg.cpp">
+      <Filter>UIs</Filter>
+    </ClCompile>
+    <ClCompile Include="CTestDialog.cpp">
+      <Filter>UIs</Filter>
+    </ClCompile>
+    <ClCompile Include="ITest.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="CFuncTestDlg.cpp">
+      <Filter>UIs</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser.cpp">
+      <Filter>Parser</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CudaTestMFC.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\CudaTestMFC.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\CudaTestMFC.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Thrust.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Basics.cu">
+      <Filter>Test</Filter>
+    </CudaCompile>
+  </ItemGroup>
+</Project>

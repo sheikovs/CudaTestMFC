@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+   <!--//////////////////////////////////////////
+   //
+   //  Vectors
+   //
+   //////////////////////////////////////////-->
+
+   <!-- .....................................
+         thrust::host_vector
+   ..................................... -->
+
+   <Type Name="thrust::host_vector&lt;*&gt;">
+      <DisplayString Condition="m_size == 0">empty</DisplayString>
+      <DisplayString Condition="m_size != 0">{{size={m_size}}</DisplayString>
+      <Expand>
+         <Item Name="[size]">m_size</Item>
+		  <ArrayItems Condition="m_size != 0">
+            <Size>m_size</Size>
+            <ValuePointer>m_storage.m_begin.m_iterator</ValuePointer>
+         </ArrayItems>
+      </Expand>
+   </Type>
+	
+   <!--//////////////////////////////////////////
+   //
+   //  Mem Blocks
+   //
+   //////////////////////////////////////////-->
+
+	<!-- .....................................
+         TUVABlock
+   ..................................... -->
+
+	<Type Name="THostMem&lt;*&gt;">
+		<DisplayString Condition="_count == 0">empty</DisplayString>
+		<DisplayString Condition="_count != 0">{{size={_count}}</DisplayString>
+		<Expand>
+			<Item Name="[size]">_count</Item>
+			<ArrayItems Condition="_ptr != nullptr">
+				<Size>_count</Size>
+				<ValuePointer>_ptr</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
+</AutoVisualizer>
+
+
