@@ -2,14 +2,14 @@
 #define __TESTS_H__
 
 #include "CTestDialog.h"
-#include "CDRHelpers.h"
+#include "NvRtcHelpers.h"
 
 class SAXPYTest
 :  public _ITest
 {
 public:
 
-   using Device_t = CDRH::Device;
+   using Device_t = NVRTCH::Device;
 
    Device_t _device;
 

@@ -43,9 +43,6 @@ struct _ITestReport
    virtual  void  AddLog    (CString const& MsgArg, bool NewLineArg = true)   = 0;
    virtual  void  AppendLog (LPCTSTR FormatArg, ...)                          = 0;
    virtual  void  ClearLog  ()                                                = 0;
-   virtual  void  Print     ()
-   {
-   }
 };
 
 ///////////////////////////////////////////

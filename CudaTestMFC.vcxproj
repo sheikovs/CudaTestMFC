@@ -207,9 +207,12 @@
       <AdditionalOptions>--expt-relaxed-constexpr -std=c++17 %(AdditionalOptions)</AdditionalOptions>
       <CodeGeneration>compute_75,sm_75</CodeGeneration>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CDRHelpers.h" />
+    <ClInclude Include="CDRMemory.h" />
     <ClInclude Include="CFuncTestDlg.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CommonDefs.h" />
@@ -217,30 +220,35 @@
     <ClInclude Include="CudaHelpers.h" />
     <ClInclude Include="CudaTestMFC.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="FuncTest.cuh" />
     <ClInclude Include="Gpu.h" />
     <ClInclude Include="ITest.h" />
+    <ClInclude Include="KernelArg.h" />
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="MemHelper.cuh" />
-    <ClInclude Include="NvRtcHelpers.h" />
+    <ClInclude Include="NvRtcProgram.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Tests.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TLLException.h" />
+    <ClInclude Include="TLLFlags.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Basics.cu">
       <FileType>CppCode</FileType>
     </CudaCompile>
+    <ClCompile Include="CDRHelpers.cpp" />
     <ClCompile Include="CFuncTestDlg.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="CTestDialog.cpp" />
     <ClCompile Include="CudaTestMFC.cpp" />
     <ClCompile Include="Gpu.cpp" />
     <ClCompile Include="ITest.cpp" />
+    <ClCompile Include="KernelArg.cpp" />
     <ClCompile Include="MainDlg.cpp" />
-    <ClCompile Include="NvRtcHelpers.cpp" />
+    <ClCompile Include="NvRtcProgram.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -250,6 +258,7 @@
     </ClCompile>
     <ClCompile Include="SaxpyRun.cpp" />
     <ClCompile Include="TLLException.cpp" />
+    <CudaCompile Include="FuncTest.cu" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CudaTestMFC.rc" />
@@ -262,6 +271,7 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Thrust.natvis" />
+    <Natvis Include="TLL.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

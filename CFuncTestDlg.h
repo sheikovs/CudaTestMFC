@@ -1,6 +1,7 @@
 #pragma once
 #include "afxdialogex.h"
-#include "NvRtcHelpers.h"
+#include "NvRtcProgram.h"
+#include "CDRHelpers.h"
 
 struct _Parser;
 
@@ -10,14 +11,15 @@ class CFuncTestDlg : public CDialogEx
 {
 	DECLARE_DYNAMIC(CFuncTestDlg)
 
-	using Device_t    = NVRTCH::Device;
-	using Program_t   = NVRTCH::Program;
-	using Kernel_t    = NVRTCH::Kernel;
+	using Device_t		= CDRH::Device;
+	using Program_t   = NVRTCH_1::Program;
+	using Kernel_t    = NVRTCH_1::Kernel;
+
 private:
 
-	Device_t		_device;
-	Program_t	_program;
-	_Parser*		_parser_ptr {};
+	Device_t		_Device;
+	Program_t	_Program;
+	_Parser*		_ParserPtr {};
 
 	int	_SizeVar		= 1;
 	int	_IntVar		= 1;
@@ -25,6 +27,7 @@ private:
    float _GV_1       = 12.25;
    float _GV_2       = 111.75;
 	float _ResultVar	= 0.0f;
+	bool	_IsLinked   = false;
 
 public:
 	CFuncTestDlg(CWnd* pParent = nullptr);   // standard constructor
@@ -36,6 +39,7 @@ private:
 	void	__SetLog (CString const& MsgArg);
 
 	void	__Run    ();
+	void	__Link   ();
 
 	void	__UpdateSizeVar   (bool GetArg);
 	void	__UpdateIntVar    (bool GetArg);

@@ -14,6 +14,10 @@
 #define new DEBUG_NEW
 #endif
 
+namespace NVRTCH
+{
+	void  ResetDeviceCache ();
+}
 extern void  SaxpyRun_entry   ();
 extern void  BasicsTest_entry ();
 
@@ -63,6 +67,7 @@ CMainDlg::CMainDlg(CWnd* pParent /*=nullptr*/)
 
 CMainDlg::~CMainDlg ()
 {
+	NVRTCH::ResetDeviceCache ();
 }
 
 void CMainDlg::DoDataExchange(CDataExchange* pDX)
@@ -209,6 +214,21 @@ void  __AddLog (LPCTSTR FormatArg, ...)
 
 	_ThisDlgPtr->AddLog (Str);
 }
+
+CString _F (LPCTSTR FormatArg, ...)
+{
+	va_list  Args;
+	va_start (Args, FormatArg);
+
+	CString  Str;
+
+	Str.FormatV (FormatArg, Args);
+
+	va_end (Args);
+
+	return Str;
+}
+
 
 void CMainDlg::OnBnClickedSaxpyRun()
 {

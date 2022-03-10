@@ -106,9 +106,6 @@ protected:
 template <typename TValue>
 struct TCuDeviceMem;
 
-template <typename TValue>
-struct TPinnedMem;
-
 ///////////////////////////////////////////
 //
 // struct THostMem
@@ -252,8 +249,7 @@ struct TCuDeviceMem
    using value_type     = typename base_t::value_type;
    using pointer        = typename base_t::pointer;
    using Self_t         = TCuDeviceMem <value_type>;
-   using HostMem_t      = THostMem   <value_type>;
-   using TPinnedMem_t   = TPinnedMem <value_type>;
+   using HostMem_t      = THostMem <value_type>;
 
    //---------------------------------------
    #pragma endregion
@@ -270,22 +266,17 @@ struct TCuDeviceMem
 
    TCuDeviceMem (HostMem_t const& HMemArg)
    {
-      __TCopy (HMemArg);
-   }
-
-   TCuDeviceMem (TPinnedMem_t const& HMemArg)
-   {
-      __TCopy (HMemArg);
+      __Copy (HMemArg);
    }
 
    TCuDeviceMem (const value_type* ValPtrArg, size_t SizeArg)
    {
-      __Copy (ValPtrArg, SizeArg);
+      __Copy (ValArg);
    }
 
    Self_t&  operator =(HostMem_t const& HMemArg)
    {
-      __TCopy (HMemArg);
+      __Copy (HMemArg);
       return *this;
    }
 
@@ -325,7 +316,7 @@ struct TCuDeviceMem
 
    void  reset ()
    {
-      if (base_t::_ptr)
+      if (_ptr)
       {
          __CDC(cuMemFree(base_t::_ptr));
          base_t::__Reset ();
@@ -340,13 +331,12 @@ protected:
    #pragma region Helpers
    //---------------------------------------
 
-   template <typename TMem>
-   void  __TCopy (TMem const& MemArg)
+   void  __Copy (HostMem_t const& HMemArg)
    {
-      if(MemArg)
+      if(HMemArg)
       {
-         reset (MemArg.size ());
-         __CDC(cuMemcpyHtoD(base_t::_ptr, MemArg._ptr, base_t::_bytes));
+         reset (HMemArg.size ());
+         __CDC(cuMemcpyHtoD(base_t::_ptr, HMemArg._ptr, base_t::_bytes));
       }
    }
 
@@ -379,7 +369,6 @@ struct TPinnedMem
    using pointer     = typename base_t::pointer;
    using Self_t      = TPinnedMem <value_type>;
    using HostMem_t   = THostMem <value_type>;
-   using DeviceMem_t = TCuDeviceMem <value_type>;
 
    pointer  _d_ptr   = nullptr;
 
@@ -401,18 +390,7 @@ struct TPinnedMem
       __Copy (HMemArg);
    }
 
-   TPinnedMem (DeviceMem_t const& DMemArg)
-   {
-      __Copy (DMemArg);
-   }
-
    Self_t&  operator =(HostMem_t const& HMemArg)
-   {
-      __Copy (HMemArg);
-      return *this;
-   }
-
-   Self_t&  operator =(DeviceMem_t const& DMemArg)
    {
       __Copy (DMemArg);
       return *this;
@@ -444,7 +422,7 @@ struct TPinnedMem
       if (SizeArg)
       {
          auto const  Tmp (SizeArg * sizeof (value_type));
-         __CC(::cudaHostAlloc((void**)&(this->_ptr), Tmp, cudaHostAllocDefault));
+         __CC(::cudaHostAlloc((void**)&(this->_ptr), Tmp, cudaHostAllocMapped));
          __CC(::cudaHostGetDevicePointer (&_d_ptr, this->_ptr, 0));
          base_t::_count = SizeArg;
          base_t::_bytes = Tmp;
@@ -499,14 +477,6 @@ protected:
       }
    }
 
-   void  __Copy (DeviceMem_t const& DMemArg)
-   {
-      if(DMemArg)
-      {
-         reset (DMemArg.size ());
-         __CDC(cuMemcpyDtoH(base_t::_ptr, DMemArg._ptr, base_t::_bytes));
-      }
-   }
    //---------------------------------------
    #pragma endregion
 

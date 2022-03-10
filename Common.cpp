@@ -1,7 +1,15 @@
 #include "pch.h"
 #include "Common.h"
 #include <locale>
+#include <locale>
 #include <clocale>
+
+#ifdef _CONSOLE
+
+extern   void ConsolePrintError (LPCTSTR MsgArg);
+extern   void ConsolePrintLine  (LPCTSTR MsgArg);
+
+#endif
 
 static CString  __CreateErrMsg (
    cudaError_t    ErrArg
@@ -28,7 +36,11 @@ void HandleError (cudaError_t ErrArg, const char* FileArg, int LineArg, bool Thr
       }
       else
       {
+#ifdef _CONSOLE
+         ::ConsolePrintError (Msg);
+#else
          ::AfxMessageBox (Msg, MB_OK | MB_ICONERROR);
+#endif
       }
    }
 }
@@ -55,7 +67,11 @@ void  CudaError (CUresult ErrArg, const char* FileArg, int LineArg, bool ThrowAr
       }
       else
       {
+#ifdef _CONSOLE
+         ::ConsolePrintError (Msg);
+#else
          ::AfxMessageBox (Msg, MB_OK | MB_ICONERROR);
+#endif      
       }
    }
 }
@@ -91,7 +107,11 @@ void  __CheckNVTC (nvrtcResult RcArg)
 
 void  __OnError (const char* MsgArg)
 {
+#ifdef _CONSOLE
+   ::ConsolePrintError (MsgArg);
+#else
    ::AfxMessageBox (MsgArg, MB_OK | MB_ICONERROR);
+#endif
 }
 
 
@@ -100,4 +120,18 @@ std::locale&   GetLocale ()
    static std::locale   Locale (std::setlocale(LC_ALL, "en_US.UTF-8"));
 
    return Locale;
+}
+
+CString _F (LPCTSTR FormatArg, ...)
+{
+   va_list  Args;
+   va_start (Args, FormatArg);
+
+   CString  Str;
+
+   Str.FormatV (FormatArg, Args);
+
+   va_end (Args);
+
+   return Str;
 }

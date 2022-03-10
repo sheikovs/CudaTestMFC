@@ -45,26 +45,11 @@ void	CTestDialog::MakeHeader (ColumnsVc_t const& ColumnsArg)
 {
 	if (!_columns)
 	{
-		int	Ratios {};
-
-		for (auto const& Col : ColumnsArg)
-		{
-			auto const&	[Name, Align, Width]	= Col;
-			Ratios	+= Width;
-		}
-
-		CRect Rect;
-		_ListCtrl.GetClientRect (Rect);
-
-		Ratios	= Rect.Width () / Ratios;
-
 		for (int i = 0; i < ColumnsArg.size (); ++i)
 		{
 			auto const&	[Name, Align, Width]	= ColumnsArg.at (i);
-			auto const	CWidth	= Ratios * Width;
-			_ListCtrl.InsertColumn (i, Name, Align, CWidth);
+			_ListCtrl.InsertColumn (i, Name, Align, Width);
 		}
-
 		_columns	= ColumnsArg.size ();
 	}
 }

@@ -7,24 +7,23 @@
 #include "CFuncTestDlg.h"
 #include "Parser.h"
 #include "Common.h"
-#include "NvRtcHelpers.h"
 #include "Timer.h"
 #include "MemHelper.cuh"
-
+#include "FuncTest.cuh"
 
 // CFuncTestDlg dialog
 
 IMPLEMENT_DYNAMIC(CFuncTestDlg, CDialogEx)
 
 CFuncTestDlg::CFuncTestDlg(CWnd* pParent /*=nullptr*/)
-: CDialogEx(IDD_PARSER, pParent)
+:	CDialogEx(IDD_PARSER, pParent)
+,	_Program ("main_prog")
 {
-
 }
 
 CFuncTestDlg::~CFuncTestDlg()
 {
-	delete _parser_ptr;
+	delete _ParserPtr;
 }
 
 void CFuncTestDlg::DoDataExchange(CDataExchange* pDX)
@@ -67,16 +66,18 @@ BOOL CFuncTestDlg::OnInitDialog()
 
 	try
 	{
-		_device. Init (0);
-		_program.Init (_device);
+		_Device	= Device_t::SetDevice ();
 
-		_program.AddOption ("--relocatable-device-code=true");
-		_program.AddOption ("--extra-device-vectorization");
-		_program.AddOption ("--std=c++17");
-		_program.AddOption ("--include-path=C:/Temp/cudafiles/");
+		auto const&	DProp (_Device.GetProperties ());
 
-		//_program.AddHeader     ("CommonFunc.cu");
-		//_program.AddHeaderPath ("C:/tmp/cudafiles/");
+		_Program.AddOption (::_F("--gpu-architecture=sm_%d%d", DProp.major, DProp.minor));
+		_Program.AddOption ("--relocatable-device-code=true");
+		_Program.AddOption ("--extra-device-vectorization");
+		_Program.AddOption ("--std=c++17");
+		_Program.AddOption ("--include-path=C:/Temp/cudafiles/");
+
+		//_Program.AddHeader     ("CommonFunc.cu");
+		//_Program.AddHeaderPath ("C:/tmp/cudafiles/");
 
 		__UpdateSizeVar   (false);
 		__UpdateIntVar    (false);
@@ -97,32 +98,31 @@ void CFuncTestDlg::OnEnChangeFuncEdit()
 {
 	CString	Input;
 
-	_FuncEdit.GetWindowText (Input);
+	_FuncEdit.GetWindowText  (Input);
 	_BtnCompile.EnableWindow (Input.Trim ().GetLength () >= 4);
 }
 
 
 void CFuncTestDlg::OnBnClickedBtnCompile()
 {
-	CString	Input, Out;
-
+	CString	SourceData, ParsedData;
 	Timer    Tm;
 
-	_FuncEdit.GetWindowText (Input);
+	_FuncEdit.GetWindowText (SourceData);
 
 	_BtnRunScript.EnableWindow (FALSE);
 
-	if (!_parser_ptr) _parser_ptr = new _Parser;
+	if (!_ParserPtr) _ParserPtr = new _Parser;
 
-	if (_parser_ptr->Parse (Input, Out))
+	if (_ParserPtr->Parse (SourceData, ParsedData))
 	{
-		__AddLog (::_F("Parsing Succeeded: \r\n%s", Out));
+		__AddLog (::_F("Parsing Succeeded: \r\n%s", ParsedData));
 
 		auto LOnError = [this] (CString const& MsgArg)
 		{
 			__AddLog (::_F("Compilation Failed: [%s]", MsgArg));
 
-			if (auto Log = _program.GetLog (); !Log.Trim ().IsEmpty ())
+			if (auto Log = _Program.GetLog (); !Log.Trim ().IsEmpty ())
 			{
 				__AddLog (Log);
 			}
@@ -130,11 +130,13 @@ void CFuncTestDlg::OnBnClickedBtnCompile()
 
 		try
 		{
-			if (_program.Compile (Out, "Test_Func"))
-			{
-				auto const Et = Tm.get ();
+			_Program.SetSource (ParsedData);
+			_IsLinked	= false;
 
-				float const Etf	= Et / 1000000.0f;
+			if (_Program.Compile ())
+			{
+				auto const	Et  (Tm.get ());
+				float const Etf (Et / 1000000.0f);
 
 				__AddLog (::_F("Compilation Succeeded (%.4f sec.)\r\n", Etf));
 
@@ -188,14 +190,11 @@ void CFuncTestDlg::OnBnClickedBtnScriptRun ()
 	__AddLog (::_F("Run time: (%.4f) sec", static_cast <float>(Ms / 1000000.0f)));
 }
 
+extern __device__ DFunc_t  __MultFunc;
+
 void	CFuncTestDlg::__Run ()
 {
-	using Ptr_t			= void*;
-	using ArgPx_t		= std::unique_ptr <Ptr_t []>;
-	using DMem_t		= TCuDeviceMem    <float>;
-	using DMemPx_t		= std::unique_ptr <DMem_t []>;
-	using HMem_t		= THostMem <float>;
-	using HMemPx_t		= std::unique_ptr <HMem_t []>;
+	using InArgs_t    = NVRTCH_1::KernelArgs;
 	using OutArgs_t	= std::vector <size_t>;
 
 	auto LOnError	= [this] (CString const& MsgArg)
@@ -205,44 +204,15 @@ void	CFuncTestDlg::__Run ()
 
 	try
 	{
-#ifdef DEBUG
-		CString const	LibPath ("C:\\Temp\\cudafiles\\Debug\\CommonFunc.fatbin");
-#else	
-		CString const	LibPath ("C:\\Temp\\cudafiles\\Release\\CommonFunc.fatbin");
-#endif // DEBUG
-      //_device.Reset ();
-
-		_device.AddLibrary (LibPath);
-		_device.Add (_program, "CudaEntry.cubin");
-
-		void*		CubinPtr = nullptr;
-		size_t	CubinSize {};
-
-		_device.LoadData (CubinPtr, CubinSize);
-
-		{
-			CUdeviceptr	Ptr  {};
-			size_t      Size {};
-
-			if (_device.GetGlobal (Ptr, Size, "GlobalVal_1"))
-			{
-            __CDC (cuMemcpyHtoD (Ptr, &_GV_1, sizeof (_GV_1)));
-			}
-
-			if (_device.GetGlobal (Ptr, Size, "GlobalVal_2"))
-			{
-            __CDC (cuMemcpyHtoD (Ptr, &_GV_2, sizeof (_GV_2)));
-			}
-		}
+		__Link ();
 
 		auto const&	FName (_Parser::FUNC_NAME);
-		Kernel_t    KTmp (_device, FName);
+		Kernel_t    KTmp  (_Program.GetKernel (FName));
 
-		auto&			Args  (_parser_ptr->GetArguments ());
+		auto&			Args  (_ParserPtr->GetArguments ());
 		auto const  Count (Args.size ());
 
-		DMemPx_t		DMemPx (new DMem_t [Count]);
-		ArgPx_t		ArgPx  (new Ptr_t  [Count]);
+		InArgs_t		InArgs;
 		OutArgs_t	OutArgs;
 
 		for (size_t i = 0; i < Count; ++i)
@@ -250,35 +220,40 @@ void	CFuncTestDlg::__Run ()
 			auto& Arg	= *Args [i];
 			float	Val	{};
 
-			if (Arg._var_name.CompareNoCase ("kw_Size") == 0)
+			if (Arg.IsKeyWord ("kw_Size"))
 			{
 				Arg.SetValue (_SizeVar);
 
-				__AddLog (::_F("\t%s = %i", Arg._name, Arg._i_val));
-				ArgPx  [i]	= &(Arg._i_val);
+				__AddLog (::_F("\t%s = %i", Arg.GetName (), Arg.GetIntValue ()));
+				InArgs.Add (Arg.GetIntValue ());
 			}
-			else if (Arg._var_name.CompareNoCase ("kw_ValInt") == 0)
+			else if (Arg.IsKeyWord ("kw_ValInt"))
 			{
 				Arg.SetValue (_IntVar);
-				__AddLog (::_F("\t%s = %i", Arg._name, Arg._i_val));
-				ArgPx  [i]	= &(Arg._i_val);
+				__AddLog (::_F("\t%s = %i", Arg.GetName (), Arg.GetIntValue ()));
+				InArgs.Add (Arg.GetIntValue ());
 			}
-			else if (Arg._var_name.CompareNoCase ("kw_ValFloat") == 0)
+			else if (Arg.IsKeyWord ("kw_ValFloat"))
 			{
 				Arg.SetValue (_FloatVar);
-				__AddLog (::_F("\t%s = %f", Arg._name, Arg._f_val));
-				ArgPx  [i]	= &(Arg._f_val);
+				__AddLog (::_F("\t%s = %f", Arg.GetName (), Arg.GetFloatValue ()));
+				InArgs.Add (Arg.GetFloatValue ());
 			}
-			else if (Arg._var_name.CompareNoCase ("kw_Result") == 0)
+			else if (Arg.IsKeyWord ("kw_Result"))
 			{
 				Arg.SetValue (0.0f);
-				__AddLog (::_F("\t%s = %f", Arg._name, Arg._f_val));
-				DMemPx [i]	= Arg._f_val;
-				ArgPx  [i]	= &DMemPx [i]._ptr;
+				__AddLog (::_F("\t%s = %f", Arg.GetName (), Arg.GetFloatValue ()));
+				InArgs.AddPtr (&Arg._FloatVal);
+			}
+			else if (Arg.IsKeyWord ("kw_BinFunc"))
+			{
+				DFunc_t  HOp	= nullptr;
+				::GetBinFunc (HOp);
+				InArgs.Add (HOp);
 			}
 			else
 			{
-				throw std::runtime_error ((LPCTSTR)::_F("Invalid argument [%s]", Arg._name));
+				throw std::runtime_error ((LPCTSTR)::_F("Invalid argument [%s]", Arg.GetName ()));
 			}
 
 			if (Arg.IsRW ()) OutArgs.push_back (i);
@@ -287,37 +262,65 @@ void	CFuncTestDlg::__Run ()
 		dim3     Grid  (1);
 		dim3     Block (1);
 
-		KTmp.Execute (Grid, Block, ArgPx.get ());
+		KTmp.Execute (Grid, Block, InArgs.get ());
 
-		_device.Synchronize ();
+		Device_t::Synchronize ();
 
 		if (!OutArgs.empty ())
 		{
 			CString	Report ("\r\nOutput:\r\n");
-			HMemPx_t	HMemPx (new HMem_t [OutArgs.size ()]);
 
 			for (size_t i = 0; i < OutArgs.size (); ++i)
 			{
-				auto const	Idx (OutArgs.at (i));
-				HMemPx [i]	= DMemPx [OutArgs.at (i)];
+				auto const	Idx    (OutArgs.at (i));
 
-				auto& Arg	= *Args [Idx];
+				auto&			Arg     (*Args [Idx]); 
 
-				if (Arg._var_name.CompareNoCase ("kw_Result") == 0)
+				if (Arg.IsKeyWord ("kw_Result"))
 				{
-					_ResultVar	= static_cast <float>(*HMemPx [i]._ptr);
-					Report.AppendFormat ("\t%s = %s\r\n", Arg._name, ::TGetCString (_ResultVar));
-					__UpdateResultVar (false);
+					auto&		OutArg (InArgs [Idx]);
+					size_t	ArgSize {};
+
+					if (float* ValPtr = OutArg.TGetHostPtr <float> (ArgSize); ValPtr)
+					{
+						_ResultVar	= *ValPtr;
+						Report.AppendFormat ("\t%s = %s\r\n", Arg.GetName (), ::TGetCString (_ResultVar));
+						__UpdateResultVar (false);
+					}
 				}
-			}		
+			}
 			__AddLog (Report);
 		}
 	}
 	__CATCH (LOnError);
-
-   _device.Unload ();
 }
 
+void	CFuncTestDlg::__Link ()
+{
+#ifdef DEBUG
+	CString const	LibPath ("C:\\Temp\\cudafiles\\Debug\\CommonFunc.fatbin");
+#else	
+	CString const	LibPath ("C:\\Temp\\cudafiles\\Release\\CommonFunc.fatbin");
+#endif // DEBUG
+
+	if (_IsLinked)
+	{
+		_Program.AddLibrary (LibPath);
+
+		_Program.Link ();
+
+		{
+			CUdeviceptr	Ptr  {};
+			size_t      Size {};
+
+			if (_Program.GetGlobal ("GlobalVal_1", Ptr, Size))
+			{
+			}
+		}
+
+		_IsLinked	= true;
+	}
+}
 
 void CFuncTestDlg::OnBnClickedBtnUpdateVars ()
 {

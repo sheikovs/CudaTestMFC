@@ -170,12 +170,14 @@ void  BasicsTest::OnRun  ()
 
 cudaDeviceProp BasicsTest::GetCudaProperties ()
 {
-   return Gpu::GetProperties ();
+   return CUDART::Gpu::GetProperties ();
 }
 
 void  BasicsTest_entry ()
 {
-   Gpu         g (true);
+   using Gpu_t = CUDART::Gpu;
+
+   Gpu_t       Gpu (true);
    BasicsTest  Test;
    CTestDialog dlg (&Test);
 

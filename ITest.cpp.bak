@@ -23,6 +23,7 @@ void	_ITest::MakeHeader (ColumnsVc_t const& ColumnsArg)
 	_Pimpl->MakeHeader (ColumnsArg);
 }
 
+
 void	_ITest::AddRow (ItemsVc_t const& ItemsArg)
 {
 	_Pimpl->AddRow (ItemsArg);

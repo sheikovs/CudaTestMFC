@@ -1,9 +1,8 @@
 #include "pch.h"
+#include "NvRtcHelpers.h"
 #include "MemHelper.cuh"
 #include "Tests.h"
 #include "Timer.h"
-#include "CDRHelpers.h"
-#include "NvRtcProgram.h"
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
@@ -23,10 +22,10 @@ namespace SaxpyRun
       using DMem_t      = TCuDeviceMem <float>;
       using PMem_t      = TPinnedMem   <float>;
 
-      using Device_t    = CDRH::Device;
-      using Program_t   = NVRTCH_1::Program;
-      using Kernel_t    = NVRTCH_1::Kernel;
-      using Stream_t    = CDRH::Stream;
+      using Device_t    = NVRTCH::Device;
+      using Program_t   = NVRTCH::Program;
+      using Kernel_t    = NVRTCH::Kernel;
+      using Stream_t    = NVRTCH::Stream;
 
       using ItemsVc_t   = _ITestReport::ItemsVc_t;
 
@@ -91,25 +90,24 @@ namespace SaxpyRun
 
       void  __GPURun (CString const& FilePathArg, CString const& FuncArg)
       {
-         Program_t   Program ("saxpy", FilePathArg, true);
+         Program_t   Program (_device, FilePathArg);
 
          Program.AddOption ("--extra-device-vectorization");
 
-         if (Program.Compile ())
+         if (Program.Compile ("saxpy"))
          {
             if (auto const& Log   = Program.GetLog (); !Log.IsEmpty ())
             {
                _test.AppendLog ("Compile log:\r\n%s\r\n", Log);
             }
 
-            //_device.Load (Program);
+            _device.Load (Program);
 
-            Kernel_t KSaxpy  (Program.GetKernel (FuncArg));
-            Kernel_t KReduce (Program.GetKernel ("reduceNeighbored"));
+            Kernel_t KSaxpy  (_device, FuncArg);
+            Kernel_t KReduce (_device, "reduceNeighbored");
 
-            __GPURunCopy       (KSaxpy, KReduce);
-            __GPURunPinned     (KSaxpy, KReduce);
-            __GPURunCopyPinned (KSaxpy, KReduce);
+            __GPURunCopy   (KSaxpy, KReduce);
+            __GPURunPinned (KSaxpy, KReduce);
 
             if (_size >= 100000)
             {
@@ -159,46 +157,6 @@ namespace SaxpyRun
          _tm   = Tm.get ();
 
          __Report ("CUDA Copy");
-      }
-
-      void  __GPURunCopyPinned (Kernel_t& KSAXPYArg, Kernel_t& KReduceArg)
-      {
-         Timer    Tm;
-
-         dim3     Grid  (_test.GetGridSize  (), 1, 1);
-         dim3     Block (_test.GetBlockSize (), 1, 1);
-
-         PMem_t   XPinn (_x_h_mem);
-         PMem_t   YPinn (_y_h_mem);
-
-         DMem_t   XDev (XPinn);
-         DMem_t   YDev (YPinn);
-         DMem_t   DOut (_size);
-         size_t   Offset (0);
-
-         void*    SAXPYArgs[] = { &_mult, &XDev._ptr, &YDev._ptr, &DOut._ptr, &_size, &Offset };
-
-         KSAXPYArg.Execute (Grid, Block, SAXPYArgs);
-
-         Grid.x      = _test.GetMaxBlocks (_size, Block.x);
-
-         DMem_t      DPartSum (Grid.x);
-
-         void*       ReduceArgs[] = { &DOut._ptr, &DPartSum._ptr, &_size };
-
-         Device_t::Synchronize ();
-
-         KReduceArg.Execute (Grid, Block, ReduceArgs);
-
-         Device_t::Synchronize ();
-
-         PMem_t      PPartSum (DPartSum);
-
-         _result     = std::accumulate (PPartSum.begin (), PPartSum.end (), float (), std::plus <float> ());
-
-         _tm   = Tm.get ();
-
-         __Report ("CUDA Pinned Copy");
       }
 
       void  __GPURunPinned (Kernel_t& KSAXPYArg, Kernel_t& KReduceArg)
@@ -329,7 +287,7 @@ namespace SaxpyRun
       }
    };
 
-   void  Start (_ITest& TestArg, CDRH::Device& DeviceArg)
+   void  Start (_ITest& TestArg, NVRTCH::Device& DeviceArg)
    {
       CWaitCursor wait;
       LPCTSTR     FP    = "C:\\Temp\\saxpy.cu";
@@ -353,11 +311,11 @@ void  SAXPYTest::OnInit ()
    using Columns_t   = CTestDialog::ColumnsVc_t;
 
    Columns_t Cols {
-         {"Test Name",     LVCFMT_LEFT,  1}
-      ,  {"Size",          LVCFMT_RIGHT, 1}
-      ,  {"Grid x Block",  LVCFMT_RIGHT, 1}
-      ,  {"Result",        LVCFMT_RIGHT, 1}
-      ,  {"Time (ms)",     LVCFMT_RIGHT, 1}
+         {"Test Name",     LVCFMT_LEFT,  150}
+      ,  {"Size",          LVCFMT_RIGHT, 150}
+      ,  {"Grid x Block",  LVCFMT_RIGHT, 150}
+      ,  {"Result",        LVCFMT_RIGHT, 150}
+      ,  {"Time (ms)",     LVCFMT_RIGHT, 150}
    };
 
    MakeHeader (Cols);

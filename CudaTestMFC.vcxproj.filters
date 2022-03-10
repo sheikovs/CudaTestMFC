@@ -31,6 +31,12 @@
     <Filter Include="Parser">
       <UniqueIdentifier>{66934ec1-d87d-40c3-a63a-f281f84fdf1f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CUDA\CUDART">
+      <UniqueIdentifier>{f75908ca-a60a-4aea-8128-2a00578138c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CUDA\Driver">
+      <UniqueIdentifier>{26c3df3c-0f6b-4376-8d63-343a29d9d946}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CudaTestMFC.h">
@@ -60,14 +66,8 @@
     <ClInclude Include="CudaHelpers.h">
       <Filter>CUDA</Filter>
     </ClInclude>
-    <ClInclude Include="Gpu.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
     <ClInclude Include="MemHelper.cuh">
       <Filter>CUDA</Filter>
-    </ClInclude>
-    <ClInclude Include="NvRtcHelpers.h">
-      <Filter>CUDA\NvRtc</Filter>
     </ClInclude>
     <ClInclude Include="Tests.h">
       <Filter>Test</Filter>
@@ -87,6 +87,27 @@
     <ClInclude Include="Parser.h">
       <Filter>Parser</Filter>
     </ClInclude>
+    <ClInclude Include="FuncTest.cuh">
+      <Filter>Test</Filter>
+    </ClInclude>
+    <ClInclude Include="KernelArg.h">
+      <Filter>CUDA\NvRtc</Filter>
+    </ClInclude>
+    <ClInclude Include="NvRtcProgram.h">
+      <Filter>CUDA\NvRtc</Filter>
+    </ClInclude>
+    <ClInclude Include="TLLFlags.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Gpu.h">
+      <Filter>CUDA\CUDART</Filter>
+    </ClInclude>
+    <ClInclude Include="CDRHelpers.h">
+      <Filter>CUDA\Driver</Filter>
+    </ClInclude>
+    <ClInclude Include="CDRMemory.h">
+      <Filter>CUDA\Driver</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -98,14 +119,8 @@
     <ClCompile Include="TLLException.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Gpu.cpp">
-      <Filter>CUDA</Filter>
-    </ClCompile>
     <ClCompile Include="SaxpyRun.cpp">
       <Filter>Test</Filter>
-    </ClCompile>
-    <ClCompile Include="NvRtcHelpers.cpp">
-      <Filter>CUDA\NvRtc</Filter>
     </ClCompile>
     <ClCompile Include="CudaTestMFC.cpp">
       <Filter>Source Files</Filter>
@@ -125,6 +140,18 @@
     <ClCompile Include="Parser.cpp">
       <Filter>Parser</Filter>
     </ClCompile>
+    <ClCompile Include="KernelArg.cpp">
+      <Filter>CUDA\NvRtc</Filter>
+    </ClCompile>
+    <ClCompile Include="NvRtcProgram.cpp">
+      <Filter>CUDA\NvRtc</Filter>
+    </ClCompile>
+    <ClCompile Include="Gpu.cpp">
+      <Filter>CUDA\CUDART</Filter>
+    </ClCompile>
+    <ClCompile Include="CDRHelpers.cpp">
+      <Filter>CUDA\Driver</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CudaTestMFC.rc">
@@ -143,9 +170,13 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Thrust.natvis" />
+    <Natvis Include="TLL.natvis" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Basics.cu">
+      <Filter>Test</Filter>
+    </CudaCompile>
+    <CudaCompile Include="FuncTest.cu">
       <Filter>Test</Filter>
     </CudaCompile>
   </ItemGroup>

@@ -3,29 +3,39 @@
 
 struct cudaDeviceProp;
 
-class Gpu
+namespace CUDART
 {
-   inline static int _deviceId   = -1;
+   ///////////////////////////////////////////
+   //
+   // class CUDART::Gpu
+   //
+   ///////////////////////////////////////////
 
-public:
-
-   Gpu  (bool InitArg);
-   ~Gpu ();
-
-   static int   GetId () noexcept
+   class Gpu
    {
-      return _deviceId;
-   }
+      inline static int _deviceId   = -1;
 
-   static cudaDeviceProp const&   GetProperties () noexcept;
+   public:
 
-   static bool Exists () noexcept
-   {
-      return _deviceId >= 0;
-   }
+      Gpu  (bool InitArg);
+      ~Gpu ();
 
-   static void  Init ();
-};
+      static int   GetId () noexcept
+      {
+         return _deviceId;
+      }
+
+      static cudaDeviceProp const&   GetProperties () noexcept;
+
+      static bool Exists () noexcept
+      {
+         return _deviceId >= 0;
+      }
+
+      static void  Init ();
+   };
+
+}  // namespace CUDART
 
 #endif // !__GPU_H__
 

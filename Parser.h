@@ -1,6 +1,7 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
+#include "TLLFlags.h"
 #include <vector>
 #include <tuple>
 #include <map>
@@ -14,68 +15,80 @@
 
 struct KeyWord
 {
-   enum
-   {
-         T_UNDEF
-      ,  T_FLOAT
-      ,  T_INT
-      ,  T_FUNCTION
-   };
+   #pragma region Types
+   //---------------------------------------
 
-   enum
-   {
-         A_UNDEF
-      ,  A_CONST
-      ,  A_IN_ONLY
-      ,  A_RW
-   };
+   using FlagValue_t = unsigned __int32;
+   using Flags_t     = TLL::TFlags <FlagValue_t>;
 
-   int      _type    = T_UNDEF;
-   int      _access  = A_UNDEF;
-   int      _i_val {};
-   float    _f_val {};
-   CString  _name;
-   CString  _var_name;
+   //---------------------------------------
+   #pragma endregion
+
+   #pragma region Data
+   //---------------------------------------
+
+   Flags_t  _Flags;
+   int      _IntVal   {};
+   float    _FloatVal {};
+   CString  _Name;
+   CString  _VarName;
+
+   //---------------------------------------
+   #pragma endregion
+
+   #pragma region CTors
+   //---------------------------------------
 
    KeyWord ()  = default;
 
-   KeyWord (CString const& NameArg, CString const& VarNameArg, int TypeArg, int AccessArg)
-   :  _type     (TypeArg)
-   ,  _access   (AccessArg)
-   ,  _name     (NameArg)
-   ,  _var_name (VarNameArg)
+   KeyWord (CString const& NameArg, CString const& VarNameArg, FlagValue_t FlagsArg);
+
+   //---------------------------------------
+   #pragma endregion
+
+   #pragma region Interface
+   //---------------------------------------
+
+   CString const& GetName () const noexcept
    {
+      return _Name;
    }
 
-   bool  IsInt () const noexcept
+   bool  IsKeyWord (LPCTSTR KeyWordArg)
    {
-      return _type == T_INT;
+      return _VarName.CompareNoCase (KeyWordArg) == 0;
    }
 
-   bool  IsFloat () const noexcept
+   bool  IsInt      () const noexcept;
+   bool  IsFloat    () const noexcept;
+   bool  IsFunction () const noexcept;
+   bool  IsReadOnly () const noexcept;
+   bool  IsRW       () const noexcept;
+
+
+   int   GetIntValue () const noexcept
    {
-      return _type == T_FLOAT;
+      return _IntVal;
    }
 
-   bool  IsReadOnly () const noexcept
+   float GetFloatValue () const noexcept
    {
-      return _access == A_IN_ONLY;
-   }
-
-   bool  IsRW () const noexcept
-   {
-      return _access == A_RW;
+      return _FloatVal;
    }
 
    void  SetValue (int ValArg) noexcept
    {
-      _i_val   = ValArg;
+      _IntVal  = ValArg;
    }
 
    void  SetValue (float ValArg) noexcept
    {
-      _f_val   = ValArg;
+      _FloatVal   = ValArg;
    }
+
+   //---------------------------------------
+   #pragma endregion
+
 };
 
 ///////////////////////////////////////////
@@ -112,6 +125,9 @@ private:
 
 struct _Parser
 {
+   #pragma region Types
+   //---------------------------------------
+
    using KetWordPtr_t   = KeyWord*;
    using KeyWordsSet_t  = std::set <KetWordPtr_t>;
    using Args_t         = std::vector <KetWordPtr_t>;
@@ -122,14 +138,26 @@ struct _Parser
       CString  Token;
    };
 
+   //---------------------------------------
+   #pragma endregion
+
+   #pragma region Data
+   //---------------------------------------
+
    inline
    static LPCTSTR FUNC_NAME   = "__cuda_Entry";
 
-   CString        _input;
-   CString        _output;
-   Dictionary     _dic;
-   KeyWordsSet_t  _kw_set;
-   mutable Args_t _args;
+   CString        _Input;
+   CString        _Output;
+   Dictionary     _KWDict;
+   KeyWordsSet_t  _KWSet;
+   mutable Args_t _Args;
+
+   //---------------------------------------
+   #pragma endregion
+
+   #pragma region Interface
+   //---------------------------------------
 
    _Parser () = default;
 
@@ -137,65 +165,33 @@ struct _Parser
 
    Args_t&  GetArguments () const noexcept
    {
-      return _args;
+      return _Args;
    }
+
+   //---------------------------------------
+   #pragma endregion
 
 private:
 
-   void  __Clear ();
+   #pragma region Helpers
+   //---------------------------------------
 
-   void  __Resolve ();
-   bool  __GetKeyWord (int SPosArg, _FData& DataArg);
-   void  __AddKeyWord (_FData const& DataArg);
-   void  __Replace ();
-   void  __Finalize ();
+   void     __Clear ();
+
+   void     __Resolve ();
+   bool     __GetKeyWord (int SPosArg, _FData& DataArg);
+   void     __AddKeyWord (_FData const& DataArg);
+   void     __Replace ();
+   void     __Finalize ();
    CString  __GetKW (KeyWord const& KwArg) const;
    CString  __GetArguments () const;
    CString  __GetArgument (KeyWord const& KwArg) const;
 
-   [[noreturn]] static void __Throw (CString const& MsgArg);
-};
+   [[noreturn]] 
+   static void __Throw (CString const& MsgArg);
 
-///////////////////////////////////////////
-//
-// class FuncParser
-//
-///////////////////////////////////////////
-
-struct FuncParser
-{
-   static bool  Parse (CString const& InArg, CString& OutArg);
-};
-
-///////////////////////////////////////////
-//
-// class ScriptParser
-//
-///////////////////////////////////////////
-
-struct ScriptParserImpl;
-
-class ScriptParser
-{
-public:
-
-   using ArgItem_t   = std::tuple <CString, float, bool>;
-   using Args_t      = std::vector <ArgItem_t>;
-
-private:
-
-   using Impl_t      = ScriptParserImpl;
-
-   Impl_t*  _pimpl   = nullptr;
-
-public:
-
-   ScriptParser  () = default;
-   ~ScriptParser ();
-
-   bool           Parse (CString const& SrcArg);
-   CString const& GetFunctionName () const noexcept; 
-   Args_t&        GetArguments    () const noexcept;
+   //---------------------------------------
+   #pragma endregion
 };
 
 #endif // !__PARSER_H__
